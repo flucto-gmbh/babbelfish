@@ -1,4 +1,5 @@
 from heisskleber.config import Config as HKConf
+from typing import FileIO
 
 from dataclasses import dataclass
 
@@ -6,6 +7,14 @@ from dataclasses import dataclass
 @dataclass
 class ServiceConf:
     name: str
+
+    @classmethod
+    def from_file(cls, file: FileIO) -> "ServiceConf":
+        pass
+
+    @classmethod
+    def from_dict(cls, config_dict: dict[str, any]) -> "ServiceConf":
+        pass
 
 
 @dataclass
@@ -19,6 +28,6 @@ class ProducerConf(ServiceConf):
 
 
 @dataclass
-class ProducerConsumerConf(ServiceConf):
+class ConsumerProducerConf(ServiceConf):
     SourceConf: HKConf
     SinkConf: HKConf

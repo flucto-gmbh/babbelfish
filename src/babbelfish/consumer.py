@@ -10,4 +10,3 @@ class Consumer(Service):
 
     def __init__(self, config: ConsumerConf) -> None:
         self.config = config
-        self.source = Source(config.SourceConf)
