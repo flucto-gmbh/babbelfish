@@ -1,7 +1,11 @@
-from heisskleber.config import Config as HKConf
-from typing import FileIO
+from dataclasses import dataclass, fields
+from pathlib import Path
+from typing import Any, TypeVar
 
-from dataclasses import dataclass
+import yaml
+from heisskleber.core import BaseConf as HKConf
+
+T = TypeVar("T", bound="ServiceConf")
 
 
 @dataclass
@@ -9,12 +13,16 @@ class ServiceConf:
     name: str
 
     @classmethod
-    def from_file(cls, file: FileIO) -> "ServiceConf":
-        pass
+    def from_file(cls: type[T], file: str | Path) -> T:
+        path = Path(file)
+        with path.open() as f:
+            return cls.from_dict(dict(yaml.safe_load(f)))
 
     @classmethod
-    def from_dict(cls, config_dict: dict[str, any]) -> "ServiceConf":
-        pass
+    def from_dict(cls: type[T], config_dict: dict[str, Any]) -> T:
+        valid_fields = {f.name for f in fields(cls)}
+        filtered_dict = {k: v for k, v in config_dict.items() if k in valid_fields}
+        return cls(**filtered_dict)
 
 
 @dataclass

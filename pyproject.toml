@@ -13,7 +13,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dynamic = ["version"]
 dependencies = [
-    "heisskleber>=0.5.8",
+    "heisskleber>=1.0.0",
 ]
 
 [tool.uv]
