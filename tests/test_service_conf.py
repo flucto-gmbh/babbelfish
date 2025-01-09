@@ -21,11 +21,24 @@ def test_create_from_dict() -> None:
         "input": {"udp": {"host": "localhost", "port": 6969}},
     }
 
-    test_dict = babbelfish.ServiceConf.from_dict(input_dict)
+    test_conf = babbelfish.ServiceConf.from_dict(input_dict)
 
-    assert isinstance(test_dict.senders["mqtt"], heisskleber.MqttSender)
-    assert isinstance(test_dict.senders["zmq"], heisskleber.ZmqSender)
-    assert isinstance(test_dict.receivers["udp"], heisskleber.UdpReceiver)
+    assert isinstance(test_conf.senders["mqtt"], heisskleber.MqttSender)
+    assert isinstance(test_conf.senders["zmq"], heisskleber.ZmqSender)
+    assert isinstance(test_conf.receivers["udp"], heisskleber.UdpReceiver)
+
+
+def test_create_receiver() -> None:
+    input_dict = {
+        "name": "test",
+        "input": {"mqtt": {"host": "mqtt.example.com", "port": 1883, "user": "test", "topic": "test"}},
+    }
+
+    test_conf = babbelfish.ServiceConf.from_dict(input_dict)
+
+    assert isinstance(test_conf.receivers["mqtt"], heisskleber.MqttReceiver)
+    assert "test" in test_conf.receivers["mqtt"].topics
+    assert "fischsuppe" not in test_conf.receivers["mqtt"].topics
 
 
 def test_simple_inheritance() -> None:
