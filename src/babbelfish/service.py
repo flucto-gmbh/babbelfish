@@ -25,22 +25,23 @@ class Service(ABC):
     def __init__(self, config: ServiceConf) -> None:
         self.name = config.name
         self.logger = logging.getLogger(self.name)
+        self.add_signal_handlers()
 
-        loop = asyncio.get_running_loop()
+    def add_signal_handlers(self) -> None:
+        loop = asyncio.get_event_loop()
+
+        async def shutdown(sig: signal.Signals) -> None:
+            tasks = []
+            for task in asyncio.all_tasks(loop):
+                if task is not asyncio.current_task():
+                    task.cancel()
+                    tasks.append(task)
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            log.info(f"Cancelled tasks: {results}")
+            loop.stop()
 
         for sig in [signal.SIGINT, signal.SIGTERM]:
-            loop.add_signal_handler(sig, lambda: asyncio.create_task(self._signal_handler(sig)))
-
-    async def _signal_handler(self, sig: signal.Signals) -> None:
-        """Handle SIGINT and SIGTERM interrupts."""
-        self.logger.warning("Received signal %s", sig.value)
-        self.task.cancel()
-        try:
-            async with asyncio.timeout(5):
-                await self.task
-        except asyncio.TimeoutError:
-            sys.exit(-1)
-        self.logger.info("Cancelled tasks.")
+            loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown(sig)))  # noqa: B023
 
     @classmethod
     def from_config_file(cls: type[T], config_file: str | Path) -> T:
