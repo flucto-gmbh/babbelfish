@@ -1,13 +1,9 @@
 import asyncio
 import logging
-from pathlib import Path
 import signal
-import sys
 from abc import ABC, abstractmethod
-from io import FileIO
+from pathlib import Path
 from typing import Any, TypeVar
-
-import functools
 
 # TODO: implement configuration class -> checkout heisskleber config
 from .config import ServiceConf
@@ -28,6 +24,7 @@ class Service(ABC):
         self.add_signal_handlers()
 
     def add_signal_handlers(self) -> None:
+        """Add signal handler for SIGINT and SIGTERM."""
         loop = asyncio.get_event_loop()
 
         async def shutdown(sig: signal.Signals) -> None:
@@ -36,8 +33,8 @@ class Service(ABC):
                 if task is not asyncio.current_task():
                     task.cancel()
                     tasks.append(task)
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            log.info(f"Cancelled tasks: {results}")
+            await asyncio.gather(*tasks, return_exceptions=False)
+            self.logger.info("Program crashed successfully.")
             loop.stop()
 
         for sig in [signal.SIGINT, signal.SIGTERM]:
