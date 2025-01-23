@@ -70,23 +70,25 @@ class ServiceConf:
         sender_instances = {}
         receiver_instances = {}
 
-        for protocol_name, protocol_config in sender_section.items():
+        for name, protocol_config in sender_section.items():
+            protocol_name = name.split("_")[0]
             config_cls = CONFIG_REGISTRY.get(protocol_name)
             sender_cls = SENDER_REGISTRY.get(protocol_name)
             if config_cls and sender_cls:
                 config_instance = config_cls.from_dict(protocol_config)
-                sender_instances[protocol_name] = sender_cls(config_instance)  # type: ignore [call-arg]
+                sender_instances[name] = sender_cls(config_instance)  # type: ignore [call-arg]
             else:
                 msg = f"Unknown protocol '{protocol_name}'"
                 raise ValueError(msg)
 
-        for protocol_name, protocol_config in receiver_section.items():
+        for name, protocol_config in receiver_section.items():
+            protocol_name = name.split("_")[0]
             config_cls = CONFIG_REGISTRY.get(protocol_name)
             receiver_cls = RECEIVER_REGISTRY.get(protocol_name)
             if config_cls and receiver_cls:
                 kwargs = {"topic": protocol_config.pop("topic")} if "topic" in protocol_config else {}
                 config_instance = config_cls.from_dict(protocol_config)
-                receiver_instances[protocol_name] = receiver_cls(config_instance, **kwargs)  # type: ignore [call-arg]
+                receiver_instances[name] = receiver_cls(config_instance, **kwargs)  # type: ignore [call-arg]
             else:
                 msg = f"Unknown protocol '{protocol_name}'"
                 raise ValueError(msg)
