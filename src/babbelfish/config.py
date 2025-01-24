@@ -2,36 +2,11 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Any, TypeVar
 
-import heisskleber
 import yaml  # type: ignore [import-untyped]
 from heisskleber import Receiver, Sender
-from heisskleber.core import BaseConf as HKConf
+from heisskleber.core import _config_registry, _receiver_registry, _sender_registry
 
 T = TypeVar("T", bound="ServiceConf")
-
-SENDER_REGISTRY: dict[str, type[Sender[Any]]] = {
-    "mqtt": heisskleber.MqttSender,
-    "zmq": heisskleber.ZmqSender,
-    "udp": heisskleber.UdpSender,
-    "tcp": heisskleber.TcpSender,
-    "serial": heisskleber.SerialSender,
-}
-
-RECEIVER_REGISTRY: dict[str, type[Receiver[Any]]] = {
-    "mqtt": heisskleber.MqttReceiver,
-    "zmq": heisskleber.ZmqReceiver,
-    "udp": heisskleber.UdpReceiver,
-    "tcp": heisskleber.TcpReceiver,
-    "serial": heisskleber.SerialReceiver,
-}
-
-CONFIG_REGISTRY: dict[str, type[HKConf]] = {
-    "mqtt": heisskleber.MqttConf,
-    "zmq": heisskleber.ZmqConf,
-    "udp": heisskleber.UdpConf,
-    "tcp": heisskleber.TcpConf,
-    "serial": heisskleber.SerialConf,
-}
 
 
 @dataclass
@@ -72,8 +47,8 @@ class ServiceConf:
 
         for name, protocol_config in sender_section.items():
             protocol_name = name.split("_")[0]
-            config_cls = CONFIG_REGISTRY.get(protocol_name)
-            sender_cls = SENDER_REGISTRY.get(protocol_name)
+            config_cls = _config_registry.get(protocol_name)
+            sender_cls = _sender_registry.get(protocol_name)
             if config_cls and sender_cls:
                 config_instance = config_cls.from_dict(protocol_config)
                 sender_instances[name] = sender_cls(config_instance)  # type: ignore [call-arg]
@@ -83,8 +58,8 @@ class ServiceConf:
 
         for name, protocol_config in receiver_section.items():
             protocol_name = name.split("_")[0]
-            config_cls = CONFIG_REGISTRY.get(protocol_name)
-            receiver_cls = RECEIVER_REGISTRY.get(protocol_name)
+            config_cls = _config_registry.get(protocol_name)
+            receiver_cls = _receiver_registry.get(protocol_name)
             if config_cls and receiver_cls:
                 kwargs = {"topic": protocol_config.pop("topic")} if "topic" in protocol_config else {}
                 config_instance = config_cls.from_dict(protocol_config)
