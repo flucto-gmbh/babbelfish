@@ -2,13 +2,9 @@ import asyncio
 import logging
 import signal
 from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Any, TypeVar
 
 # TODO: implement configuration class -> checkout heisskleber config
 from .config import ServiceConf
-
-T = TypeVar("T", bound="Service")
 
 
 class Service(ABC):
@@ -39,16 +35,6 @@ class Service(ABC):
 
         for sig in [signal.SIGINT, signal.SIGTERM]:
             loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown(sig)))  # noqa: B023
-
-    @classmethod
-    def from_config_file(cls: type[T], config_file: str | Path) -> T:
-        """Instatiate a Service object with a configuration file."""
-        return cls(ServiceConf.from_file(config_file))
-
-    @classmethod
-    def from_dict(cls: type[T], config_dict: dict[str, Any]) -> T:
-        """Instatiate a Service with a configuration based on a dictionary."""
-        return cls(ServiceConf.from_dict(config_dict))
 
     def start_hook(self) -> None:
         """Method to be implemented in derived classes, executed upon."""
