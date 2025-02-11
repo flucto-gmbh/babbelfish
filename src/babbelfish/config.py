@@ -14,6 +14,7 @@ class ServiceConf:
     """Baseclass for babbelfish service configurations."""
 
     name: str
+    precision: int = 6
     senders: dict[str, Sender[Any]] = field(default_factory=dict)
     receivers: dict[str, Receiver[Any]] = field(default_factory=dict)
 
